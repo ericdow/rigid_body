@@ -1,12 +1,15 @@
 import matplotlib.pyplot as plt
 import time
 import math
+import ground
 
-fig, ax = plt.subplots()
+# setup the ground and rigid bodies
+grnd = ground.Flat(2)
 
 # to run GUI event loop
 plt.ion()
 plt.show()
+fig, ax = plt.subplots()
 
 last_loop_time = time.time()
 draw_wait_time = 0.0
@@ -52,7 +55,9 @@ while True:
         # TODO draw...
         ax.cla()
         plt.ylim(-1.0, 1.0)
+        plt.xlim(0.0, 1.0)
         ax.plot(0.0, math.sin(current_draw_time), 'x')
+        grnd.draw(ax)
        
         fig.canvas.draw()
         fig.canvas.flush_events()
