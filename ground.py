@@ -17,6 +17,10 @@ class Ground:
     def draw(self, ax):
         ax.plot(self.x_vals, self.heights)
 
+    def __compute_normals(self):
+        self.normals = np.empty((len(x_vals), 2))
+        # TODO
+
 class Flat(Ground):
     def __init__(self, n):
         self.x_vals = np.linspace(0.0, 1.0, n)
