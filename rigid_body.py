@@ -3,8 +3,8 @@ import math
 import collision
 
 class RigidBody:
-    beta = 0.2 # Baumgarte bias velocity factor
-    d_slop = 0.01 # penetration depth slop
+    beta = 0.3 # Baumgarte bias velocity factor
+    d_slop = 0.005 # penetration depth slop
     def __init__(self):
         self.pos = None
         self.theta = None
@@ -45,6 +45,12 @@ class RigidBody:
     def do_physics_step(self, dt, grnd):
         # compute the contact points
         corners, normals, depths = collision.collide(grnd, self)
+
+        # bounce off of side walls
+        for c in corners:
+            if self.corner_pos[c][0] > 0.95 or self.corner_pos[c][0] < 0.05:
+                self.lin_mom[0] *= -1.0
+                break
         
         # apply forces
         self.lin_mom[1] -= self.mass * 9.81 * dt
@@ -60,8 +66,8 @@ class RigidBody:
 
                 vel, omega = self.get_velocity()
                 rc = self.corner_pos[c] - self.pos
-                v = vel + omega * np.array([-rc[1], rc[0]])
-                vn = np.dot(v, n)
+                vc = vel + omega * np.array([-rc[1], rc[0]])
+                vn = np.dot(vc, n)
                 rc_cross_n = rc[0]*n[1] - rc[1]*n[0]
                 kn = 1.0 / self.mass + \
                         1.0 / self.I * rc_cross_n * (n[1]*rc[0] - n[0]*rc[1])
@@ -114,8 +120,13 @@ class Box(RigidBody):
         self.corner_pos = self.corner_pos0.copy()
         self._update_corner_pos()
 
-    def draw(self, ax):
+    def draw(self, ax, lines=None):
         coord = self.corner_pos.tolist()
         coord.append(coord[0])
         xs, ys = zip(*coord)
-        ax.plot(xs,ys)
+        if (lines is None):
+            (lines,) = ax.plot(xs, ys, animated=True)
+            return lines
+        else:
+            lines.set_data(xs, ys)
+            return lines

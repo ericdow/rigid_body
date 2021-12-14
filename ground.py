@@ -20,7 +20,8 @@ class Ground:
         return self.normals[i,:]*t + self.normals[i+1,:]*(1-t)
 
     def draw(self, ax):
-        ax.plot(self.x_vals, self.heights)
+        (lines,) = ax.plot(self.x_vals, self.heights, animated=True)
+        return lines
 
     def _compute_normals(self):
         n = len(self.x_vals)
