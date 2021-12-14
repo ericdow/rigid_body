@@ -8,7 +8,8 @@ import collision
 
 # setup the ground and rigid bodies
 grnd = ground.Ramp(0.02, 21)
-rb = rigid_body.Box(0.1, 100.0, np.array([0.1,1.0]), 0)
+rb = rigid_body.Box(0.1, 10.0, np.array([0.1,1.0]), 0)
+rb.set_restitution(0.5)
 
 # to run GUI event loop
 fig, ax = plt.subplots()

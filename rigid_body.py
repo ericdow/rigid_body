@@ -4,7 +4,8 @@ import collision
 
 class RigidBody:
     beta = 0.3 # Baumgarte bias velocity factor
-    d_slop = 0.005 # penetration depth slop
+    d_slop = 0.002 # penetration depth slop
+    restitution_vel_thresh = 0.01 # collisions above this velocity will have restitution
     def __init__(self):
         self.pos = None
         self.theta = None
@@ -17,6 +18,9 @@ class RigidBody:
         self.mu = 0.0 # friction coefficient
         self.e = 0.0 # coefficient of restitution
         self.lambda_prev = None # impulses from last frame (for warm starting)
+
+    def set_restitution(self, e):
+        self.e = e
 
     def get_corner_pos(self):
         return self.corner_pos
@@ -56,7 +60,7 @@ class RigidBody:
         self.lin_mom[1] -= self.mass * 9.81 * dt
         
         # apply impulses
-        n_iter = 50
+        n_iter = 20
         jn = np.zeros(self.corner_pos.shape[0])
         for _ in range(n_iter):
             for i in range(len(corners)):
@@ -71,10 +75,16 @@ class RigidBody:
                 rc_cross_n = rc[0]*n[1] - rc[1]*n[0]
                 kn = 1.0 / self.mass + \
                         1.0 / self.I * rc_cross_n * (n[1]*rc[0] - n[0]*rc[1])
-                v_bias = RigidBody.beta / dt * max(0.0, d - RigidBody.d_slop)
+                # only apply restitution if contact velocity is above threshold
+                if (vn < RigidBody.restitution_vel_thresh):
+                    v_bias = RigidBody.beta / dt * max(0.0, d - RigidBody.d_slop)
+                    e = 0.0
+                else:
+                    v_bias = 0.0
+                    e = self.e
                 djn = (-vn + v_bias) / kn
                 jn0 = jn[c]
-                jn[c] = max(jn[c] + djn, 0.0)
+                jn[c] = (1.0 + e)*max(jn[c] + djn, 0.0)
                 djn = jn[c] - jn0
                 self.lin_mom += djn * n
                 self.ang_mom += djn * rc_cross_n
