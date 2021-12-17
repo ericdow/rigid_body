@@ -34,8 +34,13 @@ def do_physics_step(bar, wheel, spring, grnd, M_inv, t, dt):
     # compute external forces
     f_ext = compute_f_ext(bar, wheel, spring)
 
-    # form J V1 forcing
+    # check for contact between wheel and ground
     nc = 4 # number of constraints
+    _, nwg, dwg = collision.collide(grnd, wheel)
+    # if (nwg):
+    #     nc += 2
+
+    # form J V1 forcing
     beta = 0.2
     JV1 = np.zeros([nc,1])
     JV1[0] = vs(t + dt)

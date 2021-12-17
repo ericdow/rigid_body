@@ -12,6 +12,7 @@ class RigidBody:
         self.theta = None
         self.corner_pos = None
         self.corner_pos0 = None
+        self.is_polygon = True
         self.lin_mom = np.array([0.0, 0.0])
         self.ang_mom = 0.0
         self.mass = 0.0
@@ -159,6 +160,7 @@ class Circle(RigidBody):
         self.radius = radius
         self.mass = mass
         self.I = 0.5*mass*radius*radius 
+        self.is_polygon = False
 
     def draw(self, ax):
         coord = []
