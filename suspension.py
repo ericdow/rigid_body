@@ -35,13 +35,22 @@ def do_physics_step(bar, wheel, spring, grnd, M_inv, t, dt):
     f_ext = compute_f_ext(bar, wheel, spring)
 
     # form J V1 forcing
-    JV1 = np.zeros([2,1])
+    nc = 4 # number of constraints
+    JV1 = np.zeros([nc,1])
     JV1[0] = vs(t + dt)
 
     # compute the Jacobian
-    J = np.zeros([2,6])
+    J = np.zeros([nc,6])
+    # constraint on bar x position and orientation
     J[0,0] = 1.0
     J[1,2] = 1.0
+    # constraint on wheel/bar relative position
+    J[2,0] = -1.0
+    J[2,2] = -0.5*bar.L*math.cos(bar.theta)
+    J[2,3] = 1.0
+    J[3,1] = -1.0
+    J[3,2] = -0.5*bar.L*math.sin(bar.theta)
+    J[3,4] = 1.0
 
     # form the system
     A = J.dot(M_inv.dot(J.transpose()))
