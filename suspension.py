@@ -16,7 +16,7 @@ def vs(t):
     return 0.4*math.sin(t)
 
 def compute_f_ext(bar, wheel, spring):
-    f_sp = spring.force()[1]
+    f_sp = spring.force(bar.get_velocity()[0][1])[1]
     f = np.zeros([6,1])
     f[0] = f_sp[0]
     f[1] = f_sp[1] - bar.mass*9.81
@@ -63,7 +63,7 @@ def do_physics_step(bar, wheel, spring, grnd, M_inv, t, dt):
 grnd = ground.Ramp(0.02, 21)
 bar = rigid_body.Bar(0.5, 0.1, 1.0, np.array([0.1,0.5]), 0)
 wheel = rigid_body.Circle(0.15, 1.0, np.array([0.1,0.25]), 0)
-spring = spring.Spring(np.array([0.1,0.75]), np.array([0.1,0.5]), 0.25, 100.0, 0.15)
+spring = spring.Spring(np.array([0.1,0.75]), np.array([0.1,0.5]), 0.25, 100.0, 1.0, 0.15)
 
 # form the inverse mass matrix
 M_inv = np.zeros([6,6])

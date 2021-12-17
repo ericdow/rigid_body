@@ -12,11 +12,12 @@ class Spring:
     . (x1, y1) /
 
     '''
-    def __init__(self, xy0, xy1, L0, k, w):
+    def __init__(self, xy0, xy1, L0, k, c, w):
         self.xy0 = xy0
         self.xy1 = xy1
         self.L0 = L0
         self.k = k
+        self.c = c
         self.w = w # width for drawing
         self.lines = None
 
@@ -24,10 +25,10 @@ class Spring:
         self.xy0 = xy0
         self.xy1 = xy1
 
-    def force(self):
+    def force(self, vel):
         v = self.xy1 - self.xy0
         L = math.sqrt(v[0]**2 + v[1]**2)
-        mag = self.k*(L - self.L0)
+        mag = self.k*(L - self.L0) - self.c*vel
         v /= L
         f = [v*mag, -v*mag]
         return f
