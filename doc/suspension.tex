@@ -1,0 +1,58 @@
+\documentclass[9pt]{article}
+\usepackage[left=1in, right=1in, bottom=1in, top=1in]{geometry}
+\usepackage{amsmath, amssymb, amsthm}
+\usepackage{graphicx}
+\usepackage{epstopdf}
+\usepackage{subfigure}
+
+\title{PGS Suspension Solver}
+
+\begin{document}
+\maketitle
+
+The suspension can be modeled as two rigid bodies, the bar and the wheel. The bar is connected to a socket with a prismatic constraint, and the socket moves with some specified motion $x_s(t)$. The wheel connects to the bar with positional constraint. The bar is attached to a spring at its center of mass, which acts as an external force on the bar.
+
+\begin{center}
+\includegraphics[scale=0.5]{diagram.pdf}
+\end{center}
+
+Each constraint introduces linear and angular impulses:
+\[
+\overrightarrow{\lambda}_i = 
+\left[
+\begin{array}{c}
+\lambda_{lin} \\
+\lambda_{rot}
+\end{array} 
+\right]
+\]
+The location of these impulses depends on the constraint, and will change the form of the Jacobian.
+
+The first constraint we consider is the prismatic constraint of the bar/socket system. We have that 
+\[
+x_b = x_s(t) \implies u_b = \dot{x}_s(t)
+\]
+\[
+\omega_b = 0
+\]
+
+The second constraint is the position constraint for the wheel/bar system. 
+\[
+x_w - \left(x_b + \frac{L}{2}\sin \theta_b\right) = 0 \implies u_w - u_b - \frac{L}{2}\cos \theta_b \omega_b = 0
+\]
+\[
+y_w - \left(y_b - \frac{L}{2}\cos \theta_b\right) = 0 \implies v_w - v_b + \frac{L}{2}\sin \theta_b \omega_b = 0
+\]
+
+The laws of motion are
+\[
+J v_1 = 0 = J (v_0 + M^{-1} F_{ext} \Delta t) + J M^{-1} J^T \lambda
+\]
+TODO collision constraint
+
+TODO elastic collision can be handled by not setting to zero
+
+TODO Baumgarte stabilization
+
+\end{document}
+

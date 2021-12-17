@@ -1,4 +1,5 @@
 import numpy as np
+import matplotlib.pyplot as plt
 import math
 import collision
 
@@ -18,6 +19,7 @@ class RigidBody:
         self.mu = 0.0 # friction coefficient
         self.e = 0.0 # coefficient of restitution
         self.lambda_prev = None # impulses from last frame (for warm starting)
+        self.lines = None
 
     def set_restitution(self, e):
         self.e = e
@@ -130,13 +132,80 @@ class Box(RigidBody):
         self.corner_pos = self.corner_pos0.copy()
         self._update_corner_pos()
 
-    def draw(self, ax, lines=None):
+    def draw(self, ax):
         coord = self.corner_pos.tolist()
         coord.append(coord[0])
         xs, ys = zip(*coord)
-        if (lines is None):
-            (lines,) = ax.plot(xs, ys, animated=True)
-            return lines
+        if (self.lines is None):
+            (self.lines,) = ax.plot(xs, ys, animated=True)
         else:
-            lines.set_data(xs, ys)
-            return lines
+            self.lines.set_data(xs, ys)
+            ax.draw_artist(self.lines)
+
+class Circle(RigidBody):
+    def __init__(self, radius, mass, pos0, theta0):
+        super().__init__()
+        self.pos = pos0
+        self.theta = theta0
+        self.radius = radius
+        self.mass = mass
+        self.I = 0.5*mass*radius*radius 
+
+    def draw(self, ax):
+        coord = []
+        coord.append([self.pos[0], self.pos[1]])
+        for i in np.linspace(0, 2.0*math.pi, 20):
+            coord.append([self.pos[0] + self.radius*math.cos(i), 
+                self.pos[1] + self.radius*math.sin(i)])
+        coord.append(coord[0])
+        xs, ys = zip(*coord)
+        if (self.lines is None):
+            (self.lines,) = ax.plot(xs, ys, animated=True)
+        else:
+            self.lines.set_data(xs, ys)
+            ax.draw_artist(self.lines)
+
+class Bar(RigidBody):
+    def __init__(self, L, W, mass, pos0, theta0):
+        '''
+     3-------2        \
+     |   y   |        |
+     |   ^   |        |
+     |   |   |        |
+     |   |   |        |
+     |   |   |        |
+     |   ----|---> x  | L
+     |       |        |
+     |       |        |
+     |       |        |
+     |       |        |
+     0-------1        /
+
+     \_______/
+     
+         W
+
+        '''
+        super().__init__()
+        self.pos = pos0
+        self.theta = theta0
+        self.L = L
+        self.W = W
+        self.mass = mass
+        self.I = mass * (L**2 + W**2) / 12.0
+        hL = 0.5*L
+        hW = 0.5*W
+        self.corner_pos0 = np.array([[-hW,-hL], [hW,-hL], [hW,hL], [-hW,hL]])
+        self.corner_pos = self.corner_pos0.copy()
+        self._update_corner_pos()
+
+    def draw(self, ax):
+        coord = self.corner_pos.tolist()
+        coord.append(coord[0])
+        xs, ys = zip(*coord)
+        if (self.lines is None):
+            (self.lines,) = ax.plot(xs, ys, animated=True)
+        else:
+            self.lines.set_data(xs, ys)
+            ax.draw_artist(self.lines)
+

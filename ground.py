@@ -6,6 +6,7 @@ class Ground:
         self.x_vals = None
         self.heights = None
         self.normals = None
+        self.lines = None
 
     def get_height(self, x):
         dx = self.x_vals[1] - self.x_vals[0]
@@ -20,8 +21,9 @@ class Ground:
         return self.normals[i,:]*t + self.normals[i+1,:]*(1-t)
 
     def draw(self, ax):
-        (lines,) = ax.plot(self.x_vals, self.heights, animated=True)
-        return lines
+        if (self.lines is None):
+            (self.lines,) = ax.plot(self.x_vals, self.heights, animated=True)
+        ax.draw_artist(self.lines)
 
     def _compute_normals(self):
         n = len(self.x_vals)
@@ -41,12 +43,14 @@ class Ground:
 
 class Flat(Ground):
     def __init__(self, n):
+        super().__init__()
         self.x_vals = np.linspace(0.0, 1.0, n)
         self.heights = np.zeros(n)
         self._compute_normals()
                         
 class Ramp(Ground):
     def __init__(self, h, n):
+        super().__init__()
         self.x_vals = np.linspace(0.0, 1.0, n)
         self.heights = np.zeros(n)
         self.heights[:int(n/2)+1] = np.linspace(h, 0.0, int(n/2)+1)
