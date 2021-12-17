@@ -25,7 +25,7 @@ class Spring:
         self.xy1 = xy1
 
     def force(self):
-        v = xy1 - xy0
+        v = self.xy1 - self.xy0
         L = math.sqrt(v[0]**2 + v[1]**2)
         mag = self.k*(L - self.L0)
         v /= L

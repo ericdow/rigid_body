@@ -34,6 +34,11 @@ class RigidBody:
         self.pos = state[0]
         self.theta = state[1]
         self._update_corner_pos()
+    
+    def update_position(self, dt):
+        vel, omega = self.get_velocity()
+        self.pos += dt * vel 
+        self.theta += dt * omega
 
     def interpolate_state(self, s0, s1, alpha):
         pos0, theta0 = s0[0], s0[1]
@@ -41,6 +46,10 @@ class RigidBody:
         pos = alpha*pos1 + (1.0 - alpha)*pos0
         theta = alpha*theta1 + (1.0 - alpha)*theta0
         return (pos, theta)
+
+    def set_velocity(self, vel, omega):
+        self.lin_mom = self.mass * vel
+        self.ang_mom = self.I * omega
 
     def get_velocity(self):
         return (self.lin_mom / self.mass, self.ang_mom / self.I)
