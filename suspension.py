@@ -36,8 +36,11 @@ def do_physics_step(bar, wheel, spring, grnd, M_inv, t, dt):
 
     # form J V1 forcing
     nc = 4 # number of constraints
+    beta = 0.2
     JV1 = np.zeros([nc,1])
     JV1[0] = vs(t + dt)
+    JV1[2] = -beta*(wheel.pos[0] - (bar.pos[0] + 0.5*bar.L*math.sin(bar.theta)))
+    JV1[3] = -beta*(wheel.pos[1] - (bar.pos[1] - 0.5*bar.L*math.cos(bar.theta)))
 
     # compute the Jacobian
     J = np.zeros([nc,6])
@@ -69,7 +72,7 @@ def do_physics_step(bar, wheel, spring, grnd, M_inv, t, dt):
     wheel.update_position(dt)
 
 # setup the ground and rigid bodies
-grnd = ground.Ramp(0.02, 21)
+grnd = ground.Wedge(0.1, 21)
 bar = rigid_body.Bar(0.5, 0.1, 1.0, np.array([0.1,0.5]), 0)
 wheel = rigid_body.Circle(0.15, 1.0, np.array([0.1,0.25]), 0)
 spring = spring.Spring(np.array([0.1,0.75]), np.array([0.1,0.5]), 0.25, 100.0, 1.0, 0.15)

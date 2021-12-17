@@ -55,3 +55,12 @@ class Ramp(Ground):
         self.heights = np.zeros(n)
         self.heights[:int(n/2)+1] = np.linspace(h, 0.0, int(n/2)+1)
         self._compute_normals()
+
+class Wedge(Ground):
+    def __init__(self, h, n):
+        super().__init__()
+        self.x_vals = np.linspace(0.0, 1.0, n)
+        self.heights = np.zeros(n)
+        self.heights[:int(n/2)+1] = np.linspace(0, h, int(n/2)+1)
+        self.heights[int(n/2):] = np.linspace(h, 0, int(n/2)+1)
+        self._compute_normals()
