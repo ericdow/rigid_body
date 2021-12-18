@@ -35,11 +35,12 @@ def pgs(A, b):
                 tmp -= A[i,j]*l[j]
             for j in range(i+1,n):
                 tmp -= A[i,j]*l[j]
-            l[i] = tmp / A[i,i]
+            tmp /= A[i,i]
+            if i == 4:
+                l[i] = max(0.0, tmp)
+            else:
+                l[i] = tmp
 
-        # project 
-        # TODO
-    
     return l
 
 def do_physics_step(bar, wheel, spring, grnd, M_inv, t, dt):
@@ -56,8 +57,8 @@ def do_physics_step(bar, wheel, spring, grnd, M_inv, t, dt):
     # check for contact between wheel and ground
     nc = 4 # number of constraints
     _, nwg, dwg = collision.collide(grnd, wheel)
-    # if (nwg):
-    #     nc += 2
+    if (nwg):
+        nc += 1
 
     # form J V1 forcing
     beta = 0.2
@@ -65,6 +66,8 @@ def do_physics_step(bar, wheel, spring, grnd, M_inv, t, dt):
     JV1[0] = vs(t + dt)
     JV1[2] = -beta*(wheel.pos[0] - (bar.pos[0] + 0.5*bar.L*math.sin(bar.theta)))
     JV1[3] = -beta*(wheel.pos[1] - (bar.pos[1] - 0.5*bar.L*math.cos(bar.theta)))
+    if (nwg):
+        JV1[4] = beta*dwg[0]
 
     # compute the Jacobian
     J = np.zeros([nc,6])
@@ -78,6 +81,10 @@ def do_physics_step(bar, wheel, spring, grnd, M_inv, t, dt):
     J[3,1] = -1.0
     J[3,2] = -0.5*bar.L*math.sin(bar.theta)
     J[3,4] = 1.0
+    # contact constraint
+    if (nwg):
+        J[4,0] = nwg[0][0]
+        J[4,1] = nwg[0][1]
 
     # form the system
     A = J.dot(M_inv.dot(J.transpose()))
@@ -96,10 +103,10 @@ def do_physics_step(bar, wheel, spring, grnd, M_inv, t, dt):
     wheel.update_position(dt)
 
 # setup the ground and rigid bodies
-grnd = ground.Wedge(0.1, 21)
+grnd = ground.Wedge(0.15, 21)
 bar = rigid_body.Bar(0.5, 0.1, 1.0, np.array([0.1,0.5]), 0)
 wheel = rigid_body.Circle(0.15, 1.0, np.array([0.1,0.25]), 0)
-spring = spring.Spring(np.array([0.1,0.75]), np.array([0.1,0.5]), 0.25, 100.0, 1.0, 0.15)
+spring = spring.Spring(np.array([0.1,0.75]), np.array([0.1,0.5]), 0.25, 1000.0, 5.0, 0.15)
 
 # form the inverse mass matrix
 M_inv = np.zeros([6,6])
