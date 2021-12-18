@@ -23,6 +23,25 @@ def compute_f_ext(bar, wheel, spring):
     f[4] = -wheel.mass*9.81
     return f
 
+def pgs(A, b):
+    n = b.shape[0]
+    l = np.zeros([n,1])
+    n_iter = 20
+    for _ in range(n_iter):
+        # Gauss-Seidel update
+        for i in range(n):
+            tmp = b[i].copy()
+            for j in range(i):
+                tmp -= A[i,j]*l[j]
+            for j in range(i+1,n):
+                tmp -= A[i,j]*l[j]
+            l[i] = tmp / A[i,i]
+
+        # project 
+        # TODO
+    
+    return l
+
 def do_physics_step(bar, wheel, spring, grnd, M_inv, t, dt):
     # form initial velocity
     V0 = np.zeros([6,1])
@@ -63,7 +82,7 @@ def do_physics_step(bar, wheel, spring, grnd, M_inv, t, dt):
     # form the system
     A = J.dot(M_inv.dot(J.transpose()))
     b = JV1 - J.dot(V0 + dt*M_inv.dot(f_ext))
-    l = np.linalg.solve(A, b)
+    l = pgs(A, b)
 
     # compute the new velocity
     V1 = V0 + dt*M_inv.dot(f_ext) + M_inv.dot(J.transpose().dot(l))
