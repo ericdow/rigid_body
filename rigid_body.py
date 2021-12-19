@@ -7,9 +7,9 @@ class RigidBody:
     beta = 0.3 # Baumgarte bias velocity factor
     d_slop = 0.002 # penetration depth slop
     restitution_vel_thresh = 0.01 # collisions above this velocity will have restitution
-    def __init__(self):
-        self.pos = None
-        self.theta = None
+    def __init__(self, pos0, theta0):
+        self.pos = pos0
+        self.theta = theta0
         self.corner_pos = None
         self.corner_pos0 = None
         self.is_polygon = True
@@ -21,6 +21,8 @@ class RigidBody:
         self.e = 0.0 # coefficient of restitution
         self.lambda_prev = None # impulses from last frame (for warm starting)
         self.lines = None
+        self.prev_state = (self.pos, self.theta)
+        self.curr_state = (self.pos, self.theta)
 
     def set_restitution(self, e):
         self.e = e
@@ -35,18 +37,23 @@ class RigidBody:
         self.pos = state[0]
         self.theta = state[1]
         self._update_corner_pos()
+
+    def store_prev_state(self):
+        self.prev_state = (self.pos, self.theta)
+    
+    def store_curr_state(self):
+        self.curr_state = (self.pos, self.theta)
     
     def update_position(self, dt):
         vel, omega = self.get_velocity()
         self.pos += dt * vel 
         self.theta += dt * omega
 
-    def interpolate_state(self, s0, s1, alpha):
-        pos0, theta0 = s0[0], s0[1]
-        pos1, theta1 = s1[0], s1[1]
-        pos = alpha*pos1 + (1.0 - alpha)*pos0
-        theta = alpha*theta1 + (1.0 - alpha)*theta0
-        return (pos, theta)
+    def interpolate_state(self, alpha):
+        pos0, theta0 = self.prev_state[0], self.prev_state[1]
+        pos1, theta1 = self.curr_state[0], self.curr_state[1]
+        self.pos = alpha*pos1 + (1.0 - alpha)*pos0
+        self.theta = alpha*theta1 + (1.0 - alpha)*theta0
 
     def set_velocity(self, vel, omega):
         self.lin_mom = self.mass * vel
@@ -107,6 +114,8 @@ class RigidBody:
         self.theta += dt * omega
 
     def _update_corner_pos(self):
+        if (not self.is_polygon):
+            return
         # apply rotation
         st = math.sin(self.theta)
         ct = math.cos(self.theta)
@@ -131,9 +140,7 @@ class Box(RigidBody):
      0-------1        /
 
         '''
-        super().__init__()
-        self.pos = pos0
-        self.theta = theta0
+        super().__init__(pos0, theta0)
         self.size = size
         self.mass = mass
         self.I = mass * size**2 / 6.0
@@ -154,9 +161,7 @@ class Box(RigidBody):
 
 class Circle(RigidBody):
     def __init__(self, radius, mass, pos0, theta0):
-        super().__init__()
-        self.pos = pos0
-        self.theta = theta0
+        super().__init__(pos0, theta0)
         self.radius = radius
         self.mass = mass
         self.I = 0.5*mass*radius*radius 
@@ -164,11 +169,16 @@ class Circle(RigidBody):
 
     def draw(self, ax):
         coord = []
-        coord.append([self.pos[0], self.pos[1]])
+        coord.append([0.0, 0.0])
         for i in np.linspace(0, 2.0*math.pi, 20):
-            coord.append([self.pos[0] + self.radius*math.cos(i), 
-                self.pos[1] + self.radius*math.sin(i)])
-        coord.append(coord[0])
+            coord.append([self.radius*math.cos(i), 
+                self.radius*math.sin(i)])
+        st = math.sin(self.theta)
+        ct = math.cos(self.theta)
+        for c in coord:
+            c[0], c[1] = c[0]*ct - c[1]*st, c[0]*st + c[1]*ct
+            c[0] += self.pos[0]
+            c[1] += self.pos[1]
         xs, ys = zip(*coord)
         if (self.lines is None):
             (self.lines,) = ax.plot(xs, ys, animated=True)
@@ -197,9 +207,7 @@ class Bar(RigidBody):
          W
 
         '''
-        super().__init__()
-        self.pos = pos0
-        self.theta = theta0
+        super().__init__(pos0, theta0)
         self.L = L
         self.W = W
         self.mass = mass

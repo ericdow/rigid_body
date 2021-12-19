@@ -58,7 +58,7 @@ def do_physics_step(bar, wheel, spring, grnd, M_inv, t, dt):
     nc = 4 # number of constraints
     _, nwg, dwg = collision.collide(grnd, wheel)
     if (nwg):
-        nc += 1
+        nc += 2
 
     # form J V1 forcing
     beta = 0.2
@@ -83,8 +83,11 @@ def do_physics_step(bar, wheel, spring, grnd, M_inv, t, dt):
     J[3,4] = 1.0
     # contact constraint
     if (nwg):
-        J[4,0] = nwg[0][0]
-        J[4,1] = nwg[0][1]
+        J[4,3] = nwg[0][0]
+        J[4,4] = nwg[0][1]
+        J[5,3] = nwg[0][1]
+        J[5,4] = nwg[0][0]
+        J[5,5] = wheel.radius
 
     # form the system
     A = J.dot(M_inv.dot(J.transpose()))
@@ -137,8 +140,6 @@ dt_physics = 1.0 / 60.0 # don't make this too big or small
 loop_lock_time = 1.0/120.0
 last_draw_time = 0.0
 t_accumulator = 0.0
-current_state = bar.get_state()
-previous_state = bar.get_state()
 while True:
     # compute loop time
     current_loop_time = time.time()
@@ -146,22 +147,24 @@ while True:
     last_loop_time = current_loop_time
     t_accumulator += min(dt_loop, 0.25)
     
-    # update the rigid body state
-    bar.set_state(current_state) # restore state after rendering
+    # restore state after rendering
+    bar.set_state(bar.curr_state) 
+    wheel.set_state(wheel.curr_state) 
     while (t_accumulator >= dt_physics):
-        previous_state = current_state
+        bar.store_prev_state()
+        wheel.store_prev_state()
         # update the spring location
         spring.set_position(np.array([xs(t_physics), spring.xy0[1]]), 
                 bar.pos)
         do_physics_step(bar, wheel, spring, grnd, M_inv, t_physics, dt_physics)
-        current_state = bar.get_state()
+        bar.store_curr_state()
+        wheel.store_curr_state()
         t_physics += dt_physics
         t_accumulator -= dt_physics
     
     # interpolate the state vector for rendering
     alpha = t_accumulator / dt_physics
-    render_state = bar.interpolate_state(previous_state, current_state, alpha)
-    bar.set_state(render_state)
+    bar.interpolate_state(alpha)
     
     # draw the scene
     draw_wait_time += dt_loop

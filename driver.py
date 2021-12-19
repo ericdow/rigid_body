@@ -29,8 +29,6 @@ dt_physics = 1.0 / 60.0 # don't make this too big or small
 loop_lock_time = 1.0/120.0
 last_draw_time = 0.0
 t_accumulator = 0.0
-current_state = rb.get_state()
-previous_state = rb.get_state()
 while True:
     # compute loop time
     current_loop_time = time.time()
@@ -39,18 +37,17 @@ while True:
     t_accumulator += min(dt_loop, 0.25)
     
     # update the rigid body state
-    rb.set_state(current_state) # restore state after rendering
+    rb.set_state(rb.curr_state) # restore state after rendering
     while (t_accumulator >= dt_physics):
-        previous_state = current_state
+        rb.store_prev_state()
         rb.do_physics_step(dt_physics, grnd)
-        current_state = rb.get_state()
+        rb.store_curr_state()
         t_physics += dt_physics
         t_accumulator -= dt_physics
     
     # interpolate the state vector for rendering
     alpha = t_accumulator / dt_physics
-    render_state = rb.interpolate_state(previous_state, current_state, alpha)
-    rb.set_state(render_state)
+    rb.interpolate_state(alpha)
     
     # draw the scene
     draw_wait_time += dt_loop
