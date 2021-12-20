@@ -170,7 +170,7 @@ class Circle(RigidBody):
     def draw(self, ax):
         coord = []
         coord.append([0.0, 0.0])
-        for i in np.linspace(0, 2.0*math.pi, 20):
+        for i in np.linspace(0, 2.0*math.pi, 100):
             coord.append([self.radius*math.cos(i), 
                 self.radius*math.sin(i)])
         st = math.sin(self.theta)

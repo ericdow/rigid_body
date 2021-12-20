@@ -11,14 +11,14 @@ class Ground:
     def get_height(self, x):
         dx = self.x_vals[1] - self.x_vals[0]
         i = math.floor(x / dx)
-        t = x - i*dx
-        return self.heights[i]*(t) + self.heights[i+1]*(1-t)
+        t = (x - i*dx)/dx
+        return self.heights[i]*(1-t) + self.heights[i+1]*(t)
 
     def get_normal(self, x):
         dx = self.x_vals[1] - self.x_vals[0]
         i = math.floor(x / dx)
-        t = x - i*dx
-        return self.normals[i,:]*t + self.normals[i+1,:]*(1-t)
+        t = (x - i*dx)/dx
+        return self.normals[i,:]*(1-t) + self.normals[i+1,:]*(t)
 
     def draw(self, ax):
         if (self.lines is None):

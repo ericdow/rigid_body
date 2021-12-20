@@ -61,7 +61,7 @@ def do_physics_step(bar, wheel, spring, grnd, M_inv, t, dt):
         nc += 2
 
     # form J V1 forcing
-    beta = 0.2
+    beta = 0.3
     JV1 = np.zeros([nc,1])
     JV1[0] = vs(t + dt)
     JV1[2] = -beta*(wheel.pos[0] - (bar.pos[0] + 0.5*bar.L*math.sin(bar.theta)))
@@ -106,10 +106,10 @@ def do_physics_step(bar, wheel, spring, grnd, M_inv, t, dt):
     wheel.update_position(dt)
 
 # setup the ground and rigid bodies
-grnd = ground.Wedge(0.15, 21)
+grnd = ground.Wedge(0.2, 21)
 bar = rigid_body.Bar(0.5, 0.1, 1.0, np.array([0.1,0.5]), 0)
 wheel = rigid_body.Circle(0.15, 1.0, np.array([0.1,0.25]), 0)
-spring = spring.Spring(np.array([0.1,0.75]), np.array([0.1,0.5]), 0.25, 1000.0, 5.0, 0.15)
+spring = spring.Spring(np.array([0.1,0.75]), np.array([0.1,0.5]), 0.25, 1000.0, 2.0, 0.15)
 
 # form the inverse mass matrix
 M_inv = np.zeros([6,6])
@@ -165,6 +165,7 @@ while True:
     # interpolate the state vector for rendering
     alpha = t_accumulator / dt_physics
     bar.interpolate_state(alpha)
+    wheel.interpolate_state(alpha)
     
     # draw the scene
     draw_wait_time += dt_loop
